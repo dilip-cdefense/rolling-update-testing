@@ -1,0 +1,334 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: acs-backend
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: acs-backend
+  serviceName: acs-backend
+  replicas: 2
+  # minReadySeconds: 15
+  updateStrategy:
+    type: RollingUpdate
+    # rollingUpdate:
+    # maxSurge: 2
+    # maxUnavailable: 1
+  podManagementPolicy: OrderedReady
+  template:
+    metadata:
+      labels:
+        app: acs-backend
+    spec:
+      terminationGracePeriodSeconds: 30
+      imagePullSecrets:
+      - name: regcred
+      securityContext:
+        runAsUser: 100
+        # runAsNonRoot: true
+        runAsGroup: 101
+        fsGroup: 101
+      containers:
+        - name: backend
+          image: cdefense/acs-backent:latest
+          securityContext:
+            runAsUser: 100
+            runAsGroup: 101
+          env:
+          - name: SAME_SITE
+            valueFrom:
+              configMapKeyRef:
+                key: SAME_SITE
+                name: acs-config
+          - name: ALLOWED_ORIGINS
+            value: "http://localhost:4200, https://acs-{{ .Values.hostname }}, https://clouddefense4356.web.app"
+          - name: KAFKA_BOOTSTRAP_ADDRESS
+            value: kafka:9092
+          - name: KAFKA_TOPIC_NAME
+            value: awsAssetsScan
+          - name: TIN_BASE_URL
+            valueFrom:
+              secretKeyRef:
+                key:  TIN_BASE_URL
+                name: acs-secrets
+          - name: TIN_ACCESS_TOKEN
+            valueFrom:
+              secretKeyRef:
+                key: TIN_ACCESS_TOKEN
+                name: acs-secrets
+          - name: SERVLET_CONTEXT_PATH
+            valueFrom:
+              configMapKeyRef:
+                key: SERVLET_CONTEXT_PATH
+                name: acs-config
+          - name: CLOUDDEFENSE_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                key: CLOUDDEFENSE_ENVIRONMENT
+                name: acs-config
+          - name: BOOTSTRAP_COMPLIANCE_WRITE_FROM_JSON_FILE
+            valueFrom:
+              configMapKeyRef:
+                key: BOOTSTRAP_COMPLIANCE_WRITE_FROM_JSON_FILE
+                name: acs-config
+          - name: DOMAIN
+            valueFrom:
+              configMapKeyRef:
+                key: DOMAIN
+                name: acs-config
+          - name: ASSET_SCAN_K8_NAMESPACE
+            valueFrom:
+              configMapKeyRef:
+                key: ASSET_SCAN_K8_NAMESPACE
+                name: acs-config
+          - name: ASSET_SCAN_DOCKER_IMAGE_NAME
+            valueFrom:
+              configMapKeyRef:
+                key: ASSET_SCAN_DOCKER_IMAGE_NAME
+                name: acs-config
+          - name: IS_K8_ASSET_SCAN_ENABLED
+            valueFrom:
+              configMapKeyRef:
+                key: IS_K8_ASSET_SCAN_ENABLED
+                name: acs-config
+          - name: DATASOURCE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: acs-config
+                key: DATASOURCE_URL
+          - name: DATASOURCE_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                name: acs-config
+                key: DATASOURCE_USERNAME
+          - name: DATASOURCE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: acs-secrets
+                key: DATASOURCE_PASSWORD
+          - name: PRIVATE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: acs-secrets
+                key: PRIVATE_KEY
+          - name: SERVER_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                key: SERVER_USERNAME
+                name: acs-config
+          - name: HOST_ADDRESS
+            valueFrom:
+              configMapKeyRef:
+                key: BACKEND_ADDRESS
+                name: acs-config
+          - name: FRONTEND_ADDRESS
+            valueFrom:
+              configMapKeyRef:
+                key: FRONTEND_ADDRESS
+                name: acs-config
+          - name: STEAMPIPE_URL
+            valueFrom:
+              configMapKeyRef:
+                key: STEAMPIPE_URL
+                name: acs-config
+          - name: STEAMPIPE_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                key: STEAMPIPE_USERNAME
+                name: acs-config
+          - name: STEAMPIPE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: STEAMPIPE_DATABASE_PASSWORD
+                name: acs-secrets
+          - name: GITHUB_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                key: GITHUB_CLIENT_ID
+                name: acs-secrets
+          - name: GITHUB_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                key: GITHUB_CLIENT_SECRET
+                name: acs-secrets
+          - name: ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                key: AWS_ACCESS_KEY_ID
+                name: acs-secrets
+          - name: SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                key: AWS_SECRET_ACCESS_KEY
+                name: acs-secrets
+          - name: REGION_STATIC
+            valueFrom:
+              configMapKeyRef:
+                key: REGION_STATIC
+                name: acs-config
+          - name: DEFAULT_FROM_EMAIL
+            valueFrom:
+              configMapKeyRef:
+                key: DEFAULT_FROM_EMAIL
+                name: acs-config
+          - name: SMTP_HOST
+            valueFrom:
+              configMapKeyRef:
+                key: SMTP_HOST
+                name: acs-config
+          - name: SMTP_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                key: SMTP_USERNAME
+                name: acs-config
+          - name: SMTP_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: SMTP_PASSWORD
+                name: acs-secrets
+          - name: HIKARI_MAX_POOL_SIZE
+            valueFrom:
+              configMapKeyRef:
+                key: HIKARI_MAX_POOL_SIZE
+                name: acs-config
+          - name: RECAPTCHA_SITE_KEY
+            valueFrom:
+              secretKeyRef:
+                key: RECAPTCHA_SITE_KEY
+                name: acs-secrets
+          - name: RECAPTCHA_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                key: RECAPTCHA_SECRET_KEY
+                name: acs-secrets
+          - name: SENTRY_DSN
+            valueFrom:
+              configMapKeyRef:
+                key: BACKEND_SENTRY_DSN
+                name: acs-config
+          - name: SENTRY_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                key: SENTRY_ENVIRONMENT
+                name: acs-config
+          - name: ASSET_SCAN_SENTRY_DSN
+            valueFrom:
+              configMapKeyRef:
+                key: ASSET_SCAN_SENTRY_DSN
+                name: acs-config
+          - name: ASSET_SCAN_SENTRY_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                key: SENTRY_ENVIRONMENT
+                name: acs-config
+          - name: ROOT_PATH
+            valueFrom:
+              configMapKeyRef:
+                key: ROOT_PATH
+                name: acs-config
+          - name: CLOUDDEFENSE_CRYPT_BASE_SECRET
+            valueFrom:
+              secretKeyRef:
+                key: CLOUDDEFENSE_CRYPT_BASE_SECRET
+                name: acs-secrets
+          - name: CLOUDDEFENSE_CRYPT_ALGORITHM
+            valueFrom:
+              configMapKeyRef:
+                key: CLOUDDEFENSE_CRYPT_ALGORITHM
+                name: acs-config
+          - name: VOLUME_BASE_ADDRESS
+            valueFrom:
+              configMapKeyRef:
+                key: VOLUME_BASE_ADDRESS
+                name: acs-config
+          - name: PYTHON_NOVELTY_SCRIPT
+            valueFrom:
+              configMapKeyRef:
+                key: PYTHON_NOVELTY_SCRIPT
+                name: acs-config
+          - name: NEW_RELIC_APP_NAME
+            valueFrom:
+              configMapKeyRef:
+                key: NEW_RELIC_APP_NAME
+                name: acs-config
+          - name: SECRET_AWS_S3_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                key: AWS_S3_ACCESS_KEY
+                name: acs-secrets
+          - name: SECRET_AWS_S3_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                key: AWS_S3_SECRET_KEY
+                name: acs-secrets
+          - name: AWS_S3_BUCKET
+            valueFrom:
+              configMapKeyRef:
+                key: AWS_S3_BUCKET
+                name: acs-config
+          - name: AWS_S3_REGION
+            valueFrom:
+              configMapKeyRef:
+                key: AWS_S3_REGION
+                name: acs-config
+          - name: DEEP_SCAN_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                key: DEEP_SCAN_ACCESS_KEY
+                name: acs-secrets
+          - name: DEEP_SCAN_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                key: DEEP_SCAN_SECRET_KEY
+                name: acs-secrets
+          # readinessProbe:
+          #   tcpSocket:
+          #     port: 8080
+          #   initialDelaySeconds: 140
+          #   periodSeconds: 10
+          #   successThreshold: 1
+          # lifecycle:
+          #   postStart:
+          #     exec:
+          #       command:
+          #       - "/bin/sh"
+          #       - "-c"
+          #       - >
+          #         chown -R 100:101 /home/server/data;
+          volumeMounts:
+            - name: data
+              mountPath: /home/server/data
+      initContainers:
+        - name: check-db
+          image: postgres:14
+          imagePullPolicy: IfNotPresent
+          command: 
+            - sh
+            - -c
+            - until pg_isready -h db -p 5432; do echo waiting for database; sleep 5; done;
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        # - name: fix-permissions
+        #   image: alpine:3
+        #   command:
+        #     - chown
+        #     - -R
+        #     - 100:100
+        #     - /home/server/data
+        #   volumeMounts:
+        #     - name: data
+        #       mountPath: /home/server/data
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: standard
+      resources:
+        requests:
+          storage: 1Gi
+      volumeMode: Filesystem
