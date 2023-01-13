@@ -31,7 +31,7 @@ spec:
         fsGroup: 101
       containers:
         - name: backend
-          image: cdefense/acs-backent:latest
+          image: cdefense/acs-backend:latest
           securityContext:
             runAsUser: 100
             runAsGroup: 101
